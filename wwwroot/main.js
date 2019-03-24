@@ -125,9 +125,11 @@ var AppComponent = /** @class */ (function () {
                     users: singleTable.users,
                     maxUsers: singleTable.maxUser,
                     maxTime: singleTable.maxTime,
-                    currentTime: Math.round(singleTable.currentTime),
+                    currentTime: Math.round(singleTable.currentTime) > 0
+                        ? Math.round(singleTable.currentTime)
+                        : 0,
                     fixedTime: singleTable.fixedTimer,
-                    timerActive: singleTable.timerActive,
+                    timerActive: Math.round(singleTable.currentTime) > 0,
                     defaultPrice: singleTable.defaultPrice,
                     currentPrice: singleTable.currentPrice,
                     promotionPrice: singleTable.promotionPrice
@@ -569,7 +571,7 @@ var AppData = /** @class */ (function () {
     AppData.prototype.setValue = function (id, value) {
         this.data.WidgetContent.forEach(function (widget) {
             if (widget.id === id) {
-                widget.value = value;
+                widget.value = value.toFixed(2);
             }
         });
     };
@@ -2030,10 +2032,17 @@ var ContentComponent = /** @class */ (function () {
             _this.data.data.modalParams.stopTimerModal.consoleName = computer.name;
             _this.data.data.modalParams.stopTimerModal.actionID = computer.actionID;
             _this.data.data.computers.forEach(function (singleConsole) {
+                console.warn('-----------------------', singleConsole, singleConsole.currentTime);
                 if (singleConsole.id === computer.id) {
                     singleConsole.timerActive = false;
                 }
+                else {
+                    singleConsole.timerActive = singleConsole.currentTime > 0;
+                    singleConsole.currentTime =
+                        singleConsole.currentTime > 0 ? singleConsole.currentTime : 0;
+                }
             });
+            // console.warn('-------------', this.data.data.compuuters, computer);
         });
     };
     tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"]([
@@ -2453,7 +2462,7 @@ var LeftSideComponent = /** @class */ (function () {
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "<div class=\"confirmBody\">\r\n  <div class=\"topContainer\">\r\n    <table class=\"table\">\r\n      <tbody>\r\n        <tr *ngFor=\"let item of tmpSaleItems\">\r\n          <td>{{ item.name }}</td>\r\n          <td *ngIf=\"item.quantity > 0\">{{ item.quantity }} ც</td>\r\n          <td>{{ item.price }} ₾</td>\r\n        </tr>\r\n      </tbody>\r\n    </table>\r\n  </div>\r\n  <div class=\"priceContainer\">\r\n    საერთო ფასი: <span>{{ fullPrice }} ₾</span>\r\n  </div>\r\n  <div class=\"bottomContainer\">\r\n    <div class=\"singleBtn\" *ngFor=\"let btn of modalContent.buttons\">\r\n      <app-button\r\n        class=\"customBtn\"\r\n        [ngClass]=\"{\r\n          primary: btn.type === 'accept',\r\n          secondary: btn.type === 'decline'\r\n        }\"\r\n        [value]=\"btn.text\"\r\n        width=\"100\"\r\n        height=\"35\"\r\n        (click)=\"doAction(btn.type)\"\r\n      ></app-button>\r\n    </div>\r\n  </div>\r\n</div>\r\n"
+module.exports = "<div class=\"confirmBody\">\r\n  <div class=\"topContainer\">\r\n    <table class=\"table\">\r\n      <tbody>\r\n        <tr *ngFor=\"let item of tmpSaleItems\">\r\n          <td>{{ item.name }}</td>\r\n          <td *ngIf=\"item.quantity > 0\">{{ item.quantity }} ც</td>\r\n          <td>{{ item.price.toFixed(2) }} ₾</td>\r\n        </tr>\r\n      </tbody>\r\n    </table>\r\n  </div>\r\n  <div class=\"priceContainer\">\r\n    საერთო ფასი: <span>{{ fullPrice }} ₾</span>\r\n  </div>\r\n  <div class=\"bottomContainer\">\r\n    <div class=\"singleBtn\" *ngFor=\"let btn of modalContent.buttons\">\r\n      <app-button\r\n        class=\"customBtn\"\r\n        [ngClass]=\"{\r\n          primary: btn.type === 'accept',\r\n          secondary: btn.type === 'decline'\r\n        }\"\r\n        [value]=\"btn.text\"\r\n        width=\"100\"\r\n        height=\"35\"\r\n        (click)=\"doAction(btn.type)\"\r\n      ></app-button>\r\n    </div>\r\n  </div>\r\n</div>\r\n"
 
 /***/ }),
 
@@ -2481,12 +2490,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! tslib */ "./node_modules/tslib/tslib.es6.js");
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @angular/core */ "./node_modules/@angular/core/fesm5/core.js");
 /* harmony import */ var src_app_services_products_service__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! src/app/services/products.service */ "./src/app/services/products.service.ts");
+/* harmony import */ var src_app_services_authenticate_service__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! src/app/services/authenticate.service */ "./src/app/services/authenticate.service.ts");
+
 
 
 
 var ConfirmModalComponent = /** @class */ (function () {
-    function ConfirmModalComponent(productService) {
+    function ConfirmModalComponent(productService, authService) {
         this.productService = productService;
+        this.authService = authService;
         this.saleItems = [];
         this.tmpSaleItems = [];
         this.tmpItemsList = [];
@@ -2526,12 +2538,16 @@ var ConfirmModalComponent = /** @class */ (function () {
                 for (var i = 0; i < this.tmpSaleItems.length; i++) {
                     this.productService
                         .sellProduct(this.data.data.user.id, this.tmpSaleItems[i].id, this.tmpSaleItems[i].quantity)
-                        .subscribe(function (data) {
-                        _this.data.setValue('shop', data.thisDay);
-                    });
+                        .subscribe(function (data) { });
                 }
                 this.sellItems.emit(true);
                 this.closeModal.emit('');
+                setTimeout(function () {
+                    _this.authService.workInfo().subscribe(function (data) {
+                        _this.data.setValue('shop', data['magazineSum']);
+                        _this.data.setValue('console', data['consoleSum']);
+                    });
+                }, 500);
                 break;
             }
             case 'decline': {
@@ -2573,7 +2589,8 @@ var ConfirmModalComponent = /** @class */ (function () {
             template: __webpack_require__(/*! ./confirm-modal.component.html */ "./src/app/modal-box/confirm-modal/confirm-modal.component.html"),
             styles: [__webpack_require__(/*! ./confirm-modal.component.scss */ "./src/app/modal-box/confirm-modal/confirm-modal.component.scss")]
         }),
-        tslib__WEBPACK_IMPORTED_MODULE_0__["__metadata"]("design:paramtypes", [src_app_services_products_service__WEBPACK_IMPORTED_MODULE_2__["ProductService"]])
+        tslib__WEBPACK_IMPORTED_MODULE_0__["__metadata"]("design:paramtypes", [src_app_services_products_service__WEBPACK_IMPORTED_MODULE_2__["ProductService"],
+            src_app_services_authenticate_service__WEBPACK_IMPORTED_MODULE_3__["AuthenticationService"]])
     ], ConfirmModalComponent);
     return ConfirmModalComponent;
 }());
@@ -2786,6 +2803,7 @@ var StopTimeComponent = /** @class */ (function () {
                 });
                 setTimeout(function () {
                     _this.authService.workInfo().subscribe(function (data) {
+                        _this.data.setValue('shop', data['magazineSum']);
                         _this.data.setValue('console', data['consoleSum']);
                     });
                 }, 1000);
@@ -3756,8 +3774,9 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-var url = 'http://playtime.ge';
-// const url = 'http://localhost:4000';
+// const url = 'http://playtime.ge';
+var url = 'http://localhost:4000';
+// const url = 'http://cfa8f664.ngrok.io';
 var AuthenticationService = /** @class */ (function () {
     function AuthenticationService(http) {
         this.http = http;
@@ -3882,8 +3901,9 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-var url = 'http://playtime.ge';
-// const url = 'http://localhost:4000';
+// const url = 'http://playtime.ge';
+var url = 'http://localhost:4000';
+// const url = 'http://cfa8f664.ngrok.io';
 var ConsoleService = /** @class */ (function () {
     function ConsoleService(http) {
         this.http = http;
@@ -4015,8 +4035,9 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-var url = 'http://playtime.ge';
-// const url = 'http://localhost:4000';
+// const url = 'http://playtime.ge';
+var url = 'http://localhost:4000';
+// const url = 'http://cfa8f664.ngrok.io';
 var ProductService = /** @class */ (function () {
     function ProductService(http) {
         this.http = http;
@@ -4113,8 +4134,9 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-var url = 'http://playtime.ge';
-// const url = 'http://localhost:4000';
+// const url = 'http://playtime.ge';
+var url = 'http://localhost:4000';
+// const url = 'http://cfa8f664.ngrok.io';
 var PromotionsService = /** @class */ (function () {
     function PromotionsService(http) {
         this.http = http;
@@ -4764,7 +4786,21 @@ var UserProfileComponent = /** @class */ (function () {
         this.authService
             .getUserStats(this.data.data.selectedUser.id)
             .subscribe(function (data) {
-            _this.getDayleStatistics(data);
+            console.warn(data);
+            console.warn(data.getCommonStatic[0].date.split(' ')[0]);
+            data.getCommonStatic.forEach(function (singleDay) {
+                var tmpObj = {
+                    date: singleDay.date.split(' ')[0],
+                    consoleSum: singleDay.aboutUserConsole !== null
+                        ? _this.getSumDay(singleDay.aboutUserConsole[0])
+                        : 0,
+                    shopSum: singleDay.aboutUserTrade !== null
+                        ? _this.getSumDay(singleDay.aboutUserTrade[0])
+                        : 0
+                };
+                _this.userStatistics.push(tmpObj);
+            });
+            // this.getDayleStatistics(data);
         });
     };
     UserProfileComponent.prototype.getDayleStatistics = function (data) {
@@ -4811,11 +4847,7 @@ var UserProfileComponent = /** @class */ (function () {
         });
     };
     UserProfileComponent.prototype.getSumDay = function (from) {
-        var itemSum = 0;
-        from.forEach(function (item) {
-            itemSum = (itemSum + parseFloat(item.sumDay.toFixed(2)) * 100) / 100;
-        });
-        return itemSum;
+        return from.sumDay;
     };
     UserProfileComponent.prototype.changeSize = function () {
         this.userStat.nativeElement.classList.toggle('extended');

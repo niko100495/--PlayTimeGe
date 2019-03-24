@@ -236,11 +236,70 @@ namespace WebApi.Controllers
              //var getRecord = _userService.UserStatic(userParams, userId);
             var getRecordTrade = _userService.UserStatic(userId);
             var getRecordConsole = _userService.UserStaticConsole(userId);
-
+            var getCommonStatic = new List<CommonStatic>();
+            var getCommonStaticHelp = new List<CommonStatic>();
+            for (int i = 0; i < getRecordConsole.Count; i++)
+            {
+                for (int j = 0; j < getRecordTrade.Count; j++)
+                {
+                    if (DateTime.Parse(getRecordConsole[i].Date).Date == DateTime.Parse(getRecordTrade[j].Date).Date)
+                    {
+                        getCommonStatic.Add( 
+                            new CommonStatic{
+                                Date = getRecordConsole[i].Date,
+                                AboutUserConsole = getRecordConsole[i].AboutUser,
+                                AboutUserTrade = getRecordTrade[j].AboutUser
+                        }
+                            
+                        );
+                    }
+                    
+                }
+                    try {
+                        if (getCommonStatic[i].AboutUserConsole==null)
+                        {
+                            continue;
+                        }
+                    }
+                    catch {
+                         getCommonStatic.Add( 
+                            new CommonStatic{
+                                Date = getRecordConsole[i].Date,
+                                AboutUserConsole = getRecordConsole[i].AboutUser
+                        });
+                    }
+            }
+           for (int i = 0; i < getRecordTrade.Count; i++)
+            {
+                bool check = false;
+                for (int j = 0; j < getCommonStatic.Count; j++)
+                {
+                    if (DateTime.Parse(getRecordTrade[i].Date).Date == DateTime.Parse(getCommonStatic[j].Date).Date)
+                    {     
+                        check = true;
+                    }
+                }
+                    if (check == false)
+                    {
+                        
+                        getCommonStatic.Add( 
+                            new CommonStatic{
+                                Date = getRecordTrade[i].Date,
+                                AboutUserTrade = getRecordTrade[i].AboutUser,
+                                AboutUserConsole = null
+                        });
+                    }
+            }
+        
+               
+                getCommonStatic.Sort((x, y) => DateTime.Parse(y.Date).CompareTo( DateTime.Parse(x.Date)));
+                
+            
             //Respone.AddPagination(getRecord.CurrentPage, getRecord.PageSize,getRecord.TotalCount, getRecord.TotalPages);
             return Ok(new {
-                userTrade = getRecordTrade,
-                userConsole = getRecordConsole
+                getCommonStatic
+                //userTrade = getRecordTrade,
+                //userConsole = getRecordConsole
                 //getRecord 
             });
         }

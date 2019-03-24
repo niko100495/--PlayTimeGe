@@ -361,7 +361,7 @@ namespace WebApi.Services
                                                     d => new AboutUserConsole
                                                     {
                                                         UserId = g.First().userId,
-                                                        SumDay = g.Sum(s => s.Sum),
+                                                        SumDay = Math.Round(g.Sum(s => s.Sum),2),
                                                         Name = g.First().UserName,
                                                         LastName = g.First().UserLastName,
                                                         DetailDay = g.GroupBy(DD => DD.date)
