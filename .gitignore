@@ -45,4 +45,5 @@ client/app/**/*.js.map
 bin
 obj
 
-appsettings.json
+
+
