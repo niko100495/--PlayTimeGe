@@ -413,8 +413,16 @@ namespace WebApi.Services
         }
          public List<string> getLiveWorkInfo(int userId, bool clickExit = false) {
 
+             // If dont want to see the information on the other user, just remove this part
+             ///////////////////////////////////////////////////////
+            var getUser =   from SH in _context.StaffHistories 
+                                where SH.ExitTime == "waiting"
+                                select new {
+                                    userId = SH.UserId
+                                };
+            //////////////////////////////////////////////////////////
              var getConsole =   from CP in _context.ConsolePlays 
-                                where CP.UserId == userId
+                                where CP.UserId == getUser.FirstOrDefault().userId
                                 select new getLiveWorkInfo {
                                     Paid = CP.Paid.ToString(),
                                     Time = DateTime.Parse(CP.PlayStart),
@@ -424,7 +432,7 @@ namespace WebApi.Services
                                 };
             var getMagazine =   from T in _context.Trades 
                                 join M in _context.Magazines on T.MagazineId  equals M.Id
-                                where T.UserId == userId
+                                where T.UserId == getUser.FirstOrDefault().userId
                                 select new getLiveWorkInfo {
                                     Paid =(T.QuantityProduct * M.Price).ToString(),
                                     Time = DateTime.Parse(T.BuyDate)
@@ -432,7 +440,7 @@ namespace WebApi.Services
             try
             {
                var getEnterTime = DateTime.Parse(_context.StaffHistories
-                                        .Where(u=> u.UserId == userId && u.ExitTime == "waiting" )
+                                        .Where(u=> u.UserId == getUser.FirstOrDefault().userId && u.ExitTime == "waiting" )
                                         .OrderByDescending(u => u.Id)
                                         .FirstOrDefault().EnterTime);
             var getConsoleList = getConsole.ToList();
@@ -460,7 +468,6 @@ namespace WebApi.Services
                         Sum.Add("0");
                         Sum.Add("0");
                         return Sum;
-
                     }
          }
 

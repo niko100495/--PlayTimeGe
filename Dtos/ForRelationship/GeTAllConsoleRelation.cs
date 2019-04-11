@@ -19,5 +19,6 @@ namespace WebApi.Dtos.ForRelationship
         public string Promotion { get; set; }
         public string PromotionPrice { get; set; }
         public int ConsoleNumber { get; set; }
+        public int PauseDuration { get; set; }
     }
 }

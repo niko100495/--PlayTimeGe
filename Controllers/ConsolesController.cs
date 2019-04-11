@@ -337,26 +337,32 @@ namespace WebApi.Controllers
             }
             var consolePause = _consoleService.ConsolePause(consolePlayId);
             TimeSpan time = TimeSpan.FromSeconds(consolePause.PauseDuration);
-            consolePause.Paid =  System.Math.Round((
+            var Paid =  System.Math.Round((
                     ( System.DateTime.Parse(consolePause.PauseStart) -  System.DateTime.Parse(consolePause.PlayStart)
                     ).TotalSeconds - consolePause.PauseDuration) * (consolePause.Price/3600), 2);   
                   
+            var usedTimer = (DateTime.Parse(consolePause.PauseStart).Subtract(DateTime.Parse(consolePause.PlayStart))).Subtract(time);
             if (consolePause.isFixedTime == true)
             {
                 var LiveTimeFixed = (System.DateTime.Now -   System.DateTime.Parse(consolePause.PlayStart)).TotalSeconds;
                 var checkDBTimeFixed = double.Parse(consolePause.FixedTime) - LiveTimeFixed;
                 if (checkDBTimeFixed < 1200)
                 {
-                    consolePause.Paid =  System.Math.Round(
+                    Paid =  System.Math.Round(
                         System.Int32.Parse(consolePause.FixedTime)  * (consolePause.Price/3600), 2);
-                }            
+                } 
+                var k = TimeSpan.FromSeconds(Convert.ToDouble(consolePause.FixedTime));           
+                if (usedTimer >= TimeSpan.FromSeconds(Convert.ToDouble(consolePause.FixedTime)))
+                {
+                    usedTimer = TimeSpan.FromSeconds(Convert.ToDouble(consolePause.FixedTime));
+                }
             }
              return Ok(new {
                 
                 ConsoleId = consolePause.ConsoleId,
                 Price = consolePause.Price,
-                usedTime = (DateTime.Parse(consolePause.PauseStart).Subtract(DateTime.Parse(consolePause.PlayStart).Subtract(time))),
-                Paid =   consolePause.Paid   
+                usedTime = usedTimer,
+                Paid =   Paid   
             });        
         }
         [HttpPost("ConsoleContinue/{consolePlayId}")]

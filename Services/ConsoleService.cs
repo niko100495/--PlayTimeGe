@@ -81,7 +81,8 @@ namespace WebApi.Services
                                     type = C.Type,
                                     users = PT.UserId,
                                     startTime =PT.PlayStart,
-                                    ConsoleNumber = C.ConsoleNumber
+                                    ConsoleNumber = C.ConsoleNumber,
+                                    PauseDuration = PT.PauseDuration
                                     
                             };
                           
@@ -105,17 +106,16 @@ namespace WebApi.Services
                                     
                             };
     
-            
-            var getConsoleFreeList = getConsoleFree.ToList();
+            var getConsole = getConsoleFree.ToList();
             var getConsoleBusyList = getConsoleBusy.ToList();
-            
-                for (int i = 0; i <getConsoleFreeList.Count-1; i++)
+            var getConsoleFreeList = new List<GeTAllConsoleRelation>();
+                for (int i = 0; i <getConsole.Count - 1; i++)
                 {
-                    for (int j = 0; j < getConsoleBusyList.Count-1; j++)
+                    for (int j = 0; j < getConsoleBusyList.Count - 1; j++)
                     {
-                        if(getConsoleFreeList[i].id==getConsoleBusyList[j].id)
+                        if(getConsole[i].id==getConsoleBusyList[j].id)
                         {
-                            getConsoleFreeList.Remove(getConsoleFreeList[i]);
+                            getConsoleFreeList.Add(getConsole[i]);
                         }
                         
                     }
@@ -125,9 +125,14 @@ namespace WebApi.Services
                     if (getConsoleBusyList[i].fixedTimer == true)
                     {
                         getConsoleBusyList[i].CurrentTime = System.Convert.ToInt32(getConsoleBusyList[i].maxTime - ((System.DateTime.Now - System.DateTime.Parse(getConsoleBusyList[i].startTime)).TotalSeconds));
+                            if (getConsoleBusyList[i].CurrentTime <= 0)
+                            {
+                                getConsoleBusyList[i].CurrentTime = 0;
+                            }
                     }
                     else {
-                         getConsoleBusyList[i].CurrentTime = System.Convert.ToInt32(System.Math.Round((System.DateTime.Now - System.DateTime.Parse(getConsoleBusyList[i].startTime)).TotalSeconds,3));
+                        System.TimeSpan time = System.TimeSpan.FromSeconds(getConsoleBusyList[i].PauseDuration);
+                        getConsoleBusyList[i].CurrentTime = System.Convert.ToInt32(System.Math.Round(((System.DateTime.Now - System.DateTime.Parse(getConsoleBusyList[i].startTime))-time).TotalSeconds,3));
                     }
                 }
 
