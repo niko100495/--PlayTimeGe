@@ -9,6 +9,7 @@ namespace WebApi.Dtos.ForRelationship
         public float Price { get; set; }
         public bool isFixedTime { get; set; }
         public string FixedTime { get; set; }
+        public string FinishTime { get; set; }
 
     }
 }

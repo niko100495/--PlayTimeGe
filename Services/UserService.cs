@@ -428,7 +428,8 @@ namespace WebApi.Services
                                     Time = DateTime.Parse(CP.PlayStart),
                                     isFixedTime = CP.isFixedTime,
                                     FixedTime = CP.FixedTime,
-                                    Price = CP.Price
+                                    Price = CP.Price,
+                                    FinishTime = CP.PlayFinish
                                 };
             var getMagazine =   from T in _context.Trades 
                                 join M in _context.Magazines on T.MagazineId  equals M.Id
@@ -449,7 +450,7 @@ namespace WebApi.Services
 
                 for (int i = 0; i < getConsoleList.Count; i++)
                 {
-                    if (getConsoleList[i].isFixedTime == true)
+                    if (getConsoleList[i].isFixedTime == true && getConsoleList[i].FinishTime == "Waiting")
                     {
                         getConsoleList[i].Paid =  System.Math.Round(
                         System.Int32.Parse(getConsoleList[i].FixedTime) * (getConsoleList[i].Price/3600), 2).ToString();            
